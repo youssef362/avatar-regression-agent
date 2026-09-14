@@ -7,29 +7,56 @@
   "retries": 1,
   "workflows": [
     {
-      "name": "Site reachable and page loads",
+      "name": "Site up + avatar renders",
       "steps": [
-        { "action": "goto" },
-        { "action": "expectNoConsoleErrors" }
+        {
+          "action": "goto"
+        },
+        {
+          "action": "expectNoConsoleErrors"
+        }
       ]
     },
     {
-      "name": "Avatar renders",
+      "name": "Conversation flow",
       "steps": [
-        { "action": "goto" },
-        { "action": "waitForSelector", "selector": "REPLACE_ME_avatar_container", "timeoutMs": 25000 },
-        { "action": "expectVisible", "selector": "REPLACE_ME_avatar_container" }
-      ]
-    },
-    {
-      "name": "Start conversation and get a response",
-      "steps": [
-        { "action": "goto" },
-        { "action": "click", "selector": "REPLACE_ME_start_button" },
-        { "action": "waitForSelector", "selector": "REPLACE_ME_session_active" },
-        { "action": "fill", "selector": "REPLACE_ME_text_input", "text": "السلام عليكم" },
-        { "action": "click", "selector": "REPLACE_ME_send_button" },
-        { "action": "waitForResponseText", "selector": "REPLACE_ME_response_bubble", "minLength": 3, "timeoutMs": 30000 }
+        {
+          "action": "goto"
+        },
+        {
+          "action": "click",
+          "selector": "#start-session"
+        },
+        {
+          "action": "fill",
+          "text": "السلام عليكم",
+          "selector": "#chat-input"
+        },
+        {
+          "action": "click",
+          "selector": "#send"
+        },
+        {
+          "action": "waitForResponseText",
+          "selector": ".reply",
+          "minLength": 3,
+          "timeoutMs": 30000
+        },
+        {
+          "action": "fill",
+          "text": "رقم الهوية 1012345678",
+          "selector": "#chat-input"
+        },
+        {
+          "action": "click",
+          "selector": "#send"
+        },
+        {
+          "action": "expectText",
+          "contains": "شكرا",
+          "selector": ".reply",
+          "timeoutMs": 30000
+        }
       ]
     }
   ]
