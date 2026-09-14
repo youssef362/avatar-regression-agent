@@ -33,13 +33,12 @@
         },
         {
           "action": "fill",
-          "text": "2317114904",
+          "text": "wwwwwwww",
           "selector": "input"
         },
         {
-          "action": "fill",
-          "text": "fffffffffffffffffff",
-          "selector": "input"
+          "action": "click",
+          "selector": "text=تخطّي نفاذ (QA)"
         }
       ]
     }
