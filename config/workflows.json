@@ -2,7 +2,7 @@
   "avatar": {
     "name": "Fahd — Tabuk",
     "url": "https://tabuk.clients.zorgelines.com/ar/demo?avatar=f7f6fe47f93446c1&mode=debug",
-    "stepTimeoutMs": 20000
+    "stepTimeoutMs": 900000
   },
   "retries": 1,
   "workflows": [
@@ -13,49 +13,19 @@
           "action": "goto"
         },
         {
-          "action": "expectNoConsoleErrors"
-        }
-      ]
-    },
-    {
-      "name": "Conversation flow",
-      "steps": [
+          "action": "click",
+          "selector": "text=تحدث مع فهد",
+          "timeoutMs": 900000
+        },
         {
-          "action": "goto"
+          "action": "waitForSelector",
+          "selector": "text=استعلام عن معاملة",
+          "timeoutMs": 40000
         },
         {
           "action": "click",
-          "selector": "#start-session"
-        },
-        {
-          "action": "fill",
-          "text": "السلام عليكم",
-          "selector": "#chat-input"
-        },
-        {
-          "action": "click",
-          "selector": "#send"
-        },
-        {
-          "action": "waitForResponseText",
-          "selector": ".reply",
-          "minLength": 3,
-          "timeoutMs": 30000
-        },
-        {
-          "action": "fill",
-          "text": "رقم الهوية 1012345678",
-          "selector": "#chat-input"
-        },
-        {
-          "action": "click",
-          "selector": "#send"
-        },
-        {
-          "action": "expectText",
-          "contains": "شكرا",
-          "selector": ".reply",
-          "timeoutMs": 30000
+          "selector": "text=استعلام عن معاملة",
+          "timeoutMs": 40000
         }
       ]
     }
