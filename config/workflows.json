@@ -26,6 +26,15 @@
           "action": "click",
           "selector": "text=استعلام عن معاملة",
           "timeoutMs": 40000
+        },
+        {
+          "action": "waitForSelector",
+          "selector": "input"
+        },
+        {
+          "action": "fill",
+          "text": "2317114904",
+          "selector": "input"
         }
       ]
     }
