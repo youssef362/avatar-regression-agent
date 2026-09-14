@@ -1,0 +1,14 @@
+{
+  "name": "avatar-regression-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scheduled regression testing agent for AI avatar demos, with Telegram reports and alerts",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test:once": "node src/runner.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.47.0"
+  }
+}

@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Avatar Regression — Workflow Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0B1220; --panel:#131C2E; --panel-2:#0F1728; --line:#24314A;
+    --ink:#E6EDF7; --muted:#8A9BB8; --faint:#5C6E8C;
+    --teal:#2DD4BF; --teal-dim:#177f74; --gold:#E5B567; --danger:#F26D6D;
+    --radius:12px; --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:"Space Grotesk",system-ui,sans-serif; --body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(45,212,191,.06), transparent 60%),
+      radial-gradient(900px 500px at -5% 0%, rgba(229,181,103,.05), transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:var(--body); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--teal)}
+  .wrap{max-width:1200px;margin:0 auto;padding:28px 20px 80px}
+
+  /* Masthead */
+  .masthead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  .brandmark{width:40px;height:40px;border-radius:10px;flex:0 0 auto;
+    background:linear-gradient(140deg,var(--teal),var(--teal-dim));
+    display:grid;place-items:center;color:#04201d;font-family:var(--disp);font-weight:700}
+  .masthead h1{font-family:var(--disp);font-weight:600;font-size:22px;letter-spacing:-.2px;margin:0}
+  .masthead p{color:var(--muted);margin:4px 0 0;max-width:60ch;font-size:14px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start}
+  @media (max-width:920px){.grid{grid-template-columns:1fr}}
+
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .panel + .panel{margin-top:18px}
+  .panel-title{font-family:var(--disp);font-weight:600;font-size:15px;margin:0 0 14px;
+    display:flex;align-items:center;gap:10px}
+  .panel-title .dot{width:8px;height:8px;border-radius:50%;background:var(--gold)}
+
+  /* Fields */
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+  .field label{font-size:12px;color:var(--muted)}
+  .field .hint{font-size:11px;color:var(--faint)}
+  input,select,textarea{
+    background:#0A1120;border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:9px 11px;font-size:14px;font-family:var(--body);width:100%}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  input:focus-visible,select:focus-visible,textarea:focus-visible{
+    outline:2px solid var(--teal);outline-offset:1px;border-color:transparent}
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:520px){.row2{grid-template-columns:1fr}}
+  .mono{font-family:var(--mono)}
+
+  /* Workflow cards */
+  .wf{border:1px solid var(--line);border-radius:var(--radius);background:#101a2c;margin-bottom:16px;overflow:hidden}
+  .wf-head{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:#0e1728}
+  .wf-head input{font-family:var(--disp);font-weight:600}
+  .wf-body{padding:8px 14px 14px}
+
+  /* Step rail */
+  .step{position:relative;padding:12px 0 12px 40px;border-bottom:1px dashed rgba(36,49,74,.7)}
+  .step:last-child{border-bottom:none}
+  .step .num{position:absolute;left:0;top:12px;width:26px;height:26px;border-radius:50%;
+    display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:500;
+    color:var(--gold);border:1px solid rgba(229,181,103,.4);background:#0b1424}
+  .step::before{content:"";position:absolute;left:13px;top:38px;bottom:-1px;width:1px;background:rgba(229,181,103,.25)}
+  .step:last-child::before{display:none}
+  .step-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .step-top select{flex:1;min-width:180px}
+  .step-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .step-fields .full{grid-column:1/-1}
+  @media (max-width:520px){.step-fields{grid-template-columns:1fr}}
+  .stepctl{display:flex;gap:4px}
+
+  /* Buttons */
+  button{font-family:var(--body);cursor:pointer;border-radius:9px;border:1px solid var(--line);
+    background:#0f1a2c;color:var(--ink);padding:8px 12px;font-size:13px;transition:transform .06s ease,background .15s ease,border-color .15s ease}
+  button:hover{border-color:var(--teal)}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+  .btn-primary{background:linear-gradient(140deg,var(--teal),var(--teal-dim));color:#04201d;border-color:transparent;font-weight:600}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:transparent}
+  .icon{width:30px;height:30px;padding:0;display:grid;place-items:center;font-size:14px;color:var(--muted)}
+  .icon:hover{color:var(--ink)}
+  .icon.del:hover{color:var(--danger);border-color:var(--danger)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+  /* Output */
+  aside.out{position:sticky;top:20px}
+  .out .code{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:#0A1120;border:1px solid var(--line);
+    border-radius:9px;padding:12px;height:340px;resize:vertical;white-space:pre;overflow:auto;color:#cfe0f5}
+  .out .actions{display:flex;gap:10px;margin:12px 0}
+  .out .actions button{flex:1}
+  .checks{margin-top:6px;font-size:12.5px}
+  .checks .ok{color:var(--teal)}
+  .check{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(36,49,74,.5);color:var(--muted)}
+  .check:first-child{border-top:none}
+  .check .tag{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:5px;flex:0 0 auto;margin-top:1px}
+  .tag.warn{background:rgba(229,181,103,.15);color:var(--gold)}
+  .tag.info{background:rgba(45,212,191,.12);color:var(--teal)}
+  details.import{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  details.import summary{cursor:pointer;font-size:13px;color:var(--muted)}
+  details.import textarea{margin-top:10px;height:120px;font-family:var(--mono);font-size:12px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;
+    background:var(--teal);color:#04201d;font-weight:600;padding:10px 18px;border-radius:999px;transition:.2s;pointer-events:none;font-size:13px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .foot{color:var(--faint);font-size:12px;margin-top:14px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="brandmark">RA</div>
+    <div>
+      <div class="eyebrow">Regression Agent</div>
+      <h1>Workflow Builder</h1>
+      <p>Point the agent at an avatar, compose the steps it should run — click, type, wait for a reply, check the reply — then export <span class="mono">workflows.json</span> and drop it into the project's <span class="mono">config/</span> folder.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="build">
+      <div class="panel">
+        <p class="panel-title"><span class="dot"></span>Avatar under test</p>
+        <div class="field">
+          <label for="a-name">Name (shown in the Telegram report)</label>
+          <input id="a-name" placeholder="Fahd — Tabuk" />
+        </div>
+        <div class="field">
+          <label for="a-url">Avatar URL</label>
+          <input id="a-url" class="mono" placeholder="https://…/demo?avatar=…&mode=debug" />
+          <span class="hint">A URL may only have one <span class="mono">?</span> — extra parameters join with <span class="mono">&amp;</span>.</span>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="a-timeout">Default step timeout (ms)</label>
+            <input id="a-timeout" type="number" placeholder="20000" />
+          </div>
+          <div class="field">
+            <label for="a-retries">Retries before it's a real failure</label>
+            <input id="a-retries" type="number" placeholder="1" />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <p class="panel-title"><span class="dot"></span>Workflows</p>
+        <div id="workflows"></div>
+        <div class="toolbar">
+          <button class="btn-primary" id="add-wf">+ Add workflow</button>
+          <button class="btn-ghost" id="add-template">Insert conversation template</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="out">
+      <div class="panel">
+        <p class="panel-title"><span class="dot"></span>workflows.json</p>
+        <textarea id="code" class="code" readonly spellcheck="false"></textarea>
+        <div class="actions">
+          <button class="btn-primary" id="download">Download file</button>
+          <button id="copy">Copy</button>
+        </div>
+        <div class="checks" id="checks"></div>
+
+        <details class="import">
+          <summary>Load an existing workflows.json</summary>
+          <textarea id="import-text" class="mono" placeholder="Paste JSON here…"></textarea>
+          <div class="actions">
+            <button id="import-load">Load pasted JSON</button>
+            <button id="import-file-btn">Open .json file</button>
+            <input id="import-file" type="file" accept="application/json,.json" hidden />
+          </div>
+        </details>
+        <p class="foot">Each workflow runs in a fresh page, so every workflow must start with <span class="mono">Go to avatar URL</span>. AI replies vary — check that a reply <em>contains</em> a keyword, never an exact sentence.</p>
+      </div>
+
+      <div class="panel">
+        <p class="panel-title"><span class="dot"></span>Run &amp; schedule (GitHub)</p>
+        <p class="foot" style="margin:-6px 0 12px">Drives GitHub Actions from this page. Your token is used only in this browser and is never saved — paste it again each session.</p>
+        <div class="row2">
+          <div class="field"><label for="gh-owner">GitHub username / org</label><input id="gh-owner" class="mono" placeholder="youssef362" autocomplete="off" /></div>
+          <div class="field"><label for="gh-repo">Repository</label><input id="gh-repo" class="mono" placeholder="avatar-regression-agent" autocomplete="off" /></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="gh-branch">Branch</label><input id="gh-branch" class="mono" value="main" autocomplete="off" /></div>
+          <div class="field"><label for="gh-workflow">Workflow file</label><input id="gh-workflow" class="mono" value="regression.yml" autocomplete="off" /></div>
+        </div>
+        <div class="field">
+          <label for="gh-token">GitHub token (fine-grained, this repo only)</label>
+          <input id="gh-token" type="password" class="mono" placeholder="github_pat_…" autocomplete="off" />
+          <span class="hint">Give it <b>Actions: Read&nbsp;and&nbsp;write</b> and <b>Contents: Read&nbsp;and&nbsp;write</b>. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create one →</a></span>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="gh-save">Save workflows to repo</button>
+          <button id="gh-run">Run now</button>
+        </div>
+
+        <div class="field" style="margin-top:8px">
+          <label for="gh-schedule">How often it runs on its own</label>
+          <select id="gh-schedule">
+            <option value="*/30 * * * *">Every 30 minutes</option>
+            <option value="0 * * * *">Every hour</option>
+            <option value="0 */2 * * *" selected>Every 2 hours</option>
+            <option value="0 */3 * * *">Every 3 hours</option>
+            <option value="0 */6 * * *">Every 6 hours</option>
+            <option value="0 */12 * * *">Every 12 hours</option>
+            <option value="0 9 * * *">Once a day (09:00 UTC)</option>
+            <option value="custom">Custom cron…</option>
+          </select>
+          <input id="gh-cron" class="mono" placeholder="0 */2 * * *" style="margin-top:8px;display:none" />
+          <span class="hint">Times are UTC. GitHub may start a few minutes late; the minimum interval is 5 minutes.</span>
+        </div>
+        <div class="actions">
+          <button id="gh-schedule-save">Save schedule to repo</button>
+        </div>
+        <div class="checks" id="gh-status"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast">Copied</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Action + field definitions (must match the engine) ----
+  var ACTIONS = {
+    goto:                 { label:"Go to avatar URL",          fields:[] },
+    click:                { label:"Click element",             fields:["selector","timeoutMs"] },
+    fill:                 { label:"Type text into input",      fields:["text","selector","timeoutMs"] },
+    waitForResponseText:  { label:"Wait for avatar reply",     fields:["selector","minLength","timeoutMs"] },
+    expectText:           { label:"Check reply contains text", fields:["contains","selector","timeoutMs"] },
+    expectVisible:        { label:"Check element is visible",  fields:["selector","timeoutMs"] },
+    waitForSelector:      { label:"Wait for element to exist", fields:["selector","timeoutMs"] },
+    waitMs:               { label:"Wait (fixed pause)",        fields:["ms"] },
+    expectNoConsoleErrors:{ label:"Check for no page errors",  fields:[] }
+  };
+  var FIELD = {
+    selector:  { label:"Selector (id / class / css)", ph:"#start-btn  or  .send-button", type:"text", mono:true },
+    text:      { label:"Text to type",                ph:"السلام عليكم",                  type:"text", dir:"auto" },
+    contains:  { label:"Expected word in the reply",  ph:"شكرا",                          type:"text", dir:"auto" },
+    minLength: { label:"Minimum reply length (chars)",ph:"3",                             type:"number" },
+    ms:        { label:"Pause length (ms)",           ph:"1000",                          type:"number" },
+    timeoutMs: { label:"Timeout for this step (ms)",  ph:"20000",                         type:"number" }
+  };
+  var SELECTOR_FIELDS = { selector:1 };
+  var PLACEHOLDERS = /REPLACE_ME|START_SESSION_BUTTON|TEXT_INPUT|REPLY_BUBBLE|SEND_BUTTON/;
+
+  // ---- State ----
+  var state = {
+    avatar:{ name:"Fahd — Tabuk", url:"https://tabuk.clients.zorgelines.com/ar/demo?avatar=f7f6fe47f93446c1&mode=debug", stepTimeoutMs:20000 },
+    retries:1,
+    workflows:[]
+  };
+
+  function conversationTemplate(){
+    return {
+      name:"Conversation flow",
+      steps:[
+        { action:"goto" },
+        { action:"click", selector:"#start-session" },
+        { action:"fill", selector:"#chat-input", text:"السلام عليكم" },
+        { action:"click", selector:"#send" },
+        { action:"waitForResponseText", selector:".reply", minLength:3, timeoutMs:30000 },
+        { action:"fill", selector:"#chat-input", text:"رقم الهوية 1012345678" },
+        { action:"click", selector:"#send" },
+        { action:"expectText", selector:".reply", contains:"شكرا", timeoutMs:30000 }
+      ]
+    };
+  }
+  state.workflows.push({ name:"Site up + avatar renders", steps:[ {action:"goto"}, {action:"expectNoConsoleErrors"} ] });
+  state.workflows.push(conversationTemplate());
+
+  // ---- Helpers ----
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function escAttr(s){ return esc(s).replace(/"/g,"&quot;"); }
+  var $=function(id){ return document.getElementById(id); };
+
+  // ---- Build config object + JSON ----
+  function buildConfig(){
+    var cfg={ avatar:{ name:state.avatar.name||"", url:state.avatar.url||"" } };
+    if(isNum(state.avatar.stepTimeoutMs)) cfg.avatar.stepTimeoutMs=Number(state.avatar.stepTimeoutMs);
+    if(isNum(state.retries)) cfg.retries=Number(state.retries);
+    cfg.workflows=state.workflows.map(function(wf){
+      var o={ name:wf.name||"" };
+      if(isNum(wf.retries)) o.retries=Number(wf.retries);
+      o.steps=(wf.steps||[]).map(cleanStep);
+      return o;
+    });
+    return cfg;
+  }
+  function isNum(v){ return v!=="" && v!=null && !isNaN(Number(v)); }
+  function cleanStep(step){
+    var def=ACTIONS[step.action]||{fields:[]};
+    var o={ action:step.action };
+    def.fields.forEach(function(f){
+      var v=step[f];
+      if(v==null||v==="") return;
+      o[f]=(FIELD[f].type==="number") ? Number(v) : v;
+    });
+    return o;
+  }
+
+  // ---- Render workflows (structural) ----
+  function renderWorkflows(){
+    var host=$("workflows"); var html="";
+    state.workflows.forEach(function(wf,wi){
+      html+='<div class="wf">';
+      html+='<div class="wf-head">';
+      html+='<span class="num" style="position:static">'+(wi+1)+'</span>';
+      html+='<input data-wf="'+wi+'" data-role="wfname" value="'+escAttr(wf.name)+'" placeholder="Workflow name" />';
+      html+='<input data-wf="'+wi+'" data-role="wfretries" type="number" style="width:120px" value="'+(wf.retries==null?"":escAttr(wf.retries))+'" placeholder="retries" title="Retries (optional)" />';
+      html+='<button class="icon del" data-wf="'+wi+'" data-act="delwf" title="Delete workflow" aria-label="Delete workflow">✕</button>';
+      html+='</div><div class="wf-body">';
+      (wf.steps||[]).forEach(function(step,si){ html+=stepRow(wi,si,step); });
+      html+='<div class="toolbar"><button class="btn-ghost" data-wf="'+wi+'" data-act="addstep">+ Add step</button></div>';
+      html+='</div></div>';
+    });
+    if(!state.workflows.length) html='<p style="color:var(--muted);font-size:14px">No workflows yet. Add one below.</p>';
+    host.innerHTML=html;
+  }
+
+  function stepRow(wi,si,step){
+    var def=ACTIONS[step.action]||{fields:[]};
+    var h='<div class="step"><span class="num">'+(si+1)+'</span>';
+    h+='<div class="step-top">';
+    h+='<select data-wf="'+wi+'" data-step="'+si+'" data-role="action">';
+    Object.keys(ACTIONS).forEach(function(k){
+      h+='<option value="'+k+'"'+(k===step.action?" selected":"")+'>'+esc(ACTIONS[k].label)+'</option>';
+    });
+    h+='</select>';
+    h+='<span class="stepctl">';
+    h+='<button class="icon" data-wf="'+wi+'" data-step="'+si+'" data-act="up" title="Move up" aria-label="Move up">↑</button>';
+    h+='<button class="icon" data-wf="'+wi+'" data-step="'+si+'" data-act="down" title="Move down" aria-label="Move down">↓</button>';
+    h+='<button class="icon del" data-wf="'+wi+'" data-step="'+si+'" data-act="delstep" title="Delete step" aria-label="Delete step">✕</button>';
+    h+='</span></div>';
+    if(def.fields.length){
+      h+='<div class="step-fields">';
+      def.fields.forEach(function(f){
+        var m=FIELD[f]; var wide=(f==="text"||f==="contains"||f==="selector");
+        h+='<div class="field '+(wide?"full":"")+'" style="margin-bottom:0">';
+        h+='<label>'+esc(m.label)+'</label>';
+        h+='<input '+(m.mono?'class="mono" ':'')+'data-wf="'+wi+'" data-step="'+si+'" data-field="'+f+'" type="'+(m.type||"text")+'"'
+          +(m.dir?' dir="'+m.dir+'"':'')
+          +' value="'+escAttr(step[f]==null?"":step[f])+'" placeholder="'+escAttr(m.ph)+'" />';
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+    return h;
+  }
+
+  // ---- Render output JSON + checks (cheap; safe to call on every keystroke) ----
+  function renderOutput(){
+    var cfg=buildConfig();
+    $("code").value=JSON.stringify(cfg,null,2);
+    renderChecks(cfg);
+  }
+  function renderChecks(cfg){
+    var items=[];
+    if(!cfg.avatar.url) items.push(["warn","Add the avatar URL up top."]);
+    else if(/\?[^?]*\?/.test(cfg.avatar.url)) items.push(["warn","The URL has two “?”. Change the second to “&” or debug mode won't apply."]);
+    if(!cfg.workflows.length) items.push(["warn","Add at least one workflow."]);
+    cfg.workflows.forEach(function(wf,wi){
+      var tag="Workflow "+(wi+1);
+      if(!wf.name) items.push(["warn",tag+": give it a name."]);
+      if(!wf.steps.length){ items.push(["warn",tag+": has no steps."]); return; }
+      if(wf.steps[0].action!=="goto") items.push(["info",tag+": start with “Go to avatar URL” — each workflow opens a fresh page."]);
+      wf.steps.forEach(function(st,si){
+        var def=ACTIONS[st.action];
+        (def.fields||[]).forEach(function(f){
+          if(f in SELECTOR_FIELDS){
+            if(!st[f]) items.push(["warn",tag+" · step "+(si+1)+": add the real selector."]);
+            else if(PLACEHOLDERS.test(st[f])) items.push(["warn",tag+" · step "+(si+1)+": selector is still a placeholder."]);
+          }
+        });
+      });
+    });
+    var box=$("checks");
+    if(!items.length){ box.innerHTML='<div class="check"><span class="tag info">✓</span><span class="ok">Looks ready to run.</span></div>'; return; }
+    box.innerHTML=items.map(function(it){
+      return '<div class="check"><span class="tag '+it[0]+'">'+(it[0]==="warn"?"FIX":"NOTE")+'</span><span>'+esc(it[1])+'</span></div>';
+    }).join("");
+  }
+
+  // ---- Event wiring ----
+  // Config inputs
+  function bindConfig(){
+    $("a-name").value=state.avatar.name||"";
+    $("a-url").value=state.avatar.url||"";
+    $("a-timeout").value=state.avatar.stepTimeoutMs==null?"":state.avatar.stepTimeoutMs;
+    $("a-retries").value=state.retries==null?"":state.retries;
+    $("a-name").oninput=function(){ state.avatar.name=this.value; renderOutput(); };
+    $("a-url").oninput=function(){ state.avatar.url=this.value; renderOutput(); };
+    $("a-timeout").oninput=function(){ state.avatar.stepTimeoutMs=this.value===""?"":this.value; renderOutput(); };
+    $("a-retries").oninput=function(){ state.retries=this.value===""?"":this.value; renderOutput(); };
+  }
+
+  var wfHost=$("workflows");
+  // Text/number field edits — update state only, keep focus (no re-render)
+  wfHost.addEventListener("input",function(e){
+    var t=e.target; var wi=t.getAttribute("data-wf"); if(wi==null) return; wi=+wi;
+    var role=t.getAttribute("data-role");
+    if(role==="wfname"){ state.workflows[wi].name=t.value; renderOutput(); return; }
+    if(role==="wfretries"){ state.workflows[wi].retries=t.value===""?null:t.value; renderOutput(); return; }
+    var si=t.getAttribute("data-step"); var field=t.getAttribute("data-field");
+    if(si!=null && field){ state.workflows[wi].steps[+si][field]=t.value; renderOutput(); }
+  });
+  // Action dropdown change — structural (fields change), re-render
+  wfHost.addEventListener("change",function(e){
+    var t=e.target; if(t.getAttribute("data-role")!=="action") return;
+    var wi=+t.getAttribute("data-wf"), si=+t.getAttribute("data-step");
+    state.workflows[wi].steps[si]={ action:t.value }; // reset fields for the new action
+    renderWorkflows(); renderOutput();
+  });
+  // Buttons (delegated)
+  wfHost.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    var act=b.getAttribute("data-act"); if(!act) return;
+    var wi=+b.getAttribute("data-wf");
+    var siAttr=b.getAttribute("data-step"); var si=siAttr==null?null:+siAttr;
+    var wf=state.workflows[wi];
+    if(act==="delwf"){ state.workflows.splice(wi,1); }
+    else if(act==="addstep"){ wf.steps.push({action:"click",selector:""}); }
+    else if(act==="delstep"){ wf.steps.splice(si,1); }
+    else if(act==="up" && si>0){ var a=wf.steps; var tmp=a[si-1]; a[si-1]=a[si]; a[si]=tmp; }
+    else if(act==="down" && si<wf.steps.length-1){ var c=wf.steps; var t2=c[si+1]; c[si+1]=c[si]; c[si]=t2; }
+    renderWorkflows(); renderOutput();
+  });
+
+  $("add-wf").onclick=function(){ state.workflows.push({name:"New workflow",steps:[{action:"goto"}]}); renderWorkflows(); renderOutput(); };
+  $("add-template").onclick=function(){ state.workflows.push(conversationTemplate()); renderWorkflows(); renderOutput();
+    var host=$("workflows"); host.lastElementChild && host.lastElementChild.scrollIntoView({behavior:"smooth",block:"center"}); };
+
+  // Output actions
+  $("download").onclick=function(){
+    var blob=new Blob([$("code").value],{type:"application/json"});
+    var url=URL.createObjectURL(blob); var a=document.createElement("a");
+    a.href=url; a.download="workflows.json"; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },100);
+    toast("Downloaded workflows.json");
+  };
+  $("copy").onclick=function(){
+    var text=$("code").value;
+    function done(){ toast("Copied"); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else fallback();
+    function fallback(){ var c=$("code"); c.removeAttribute("readonly"); c.select();
+      try{ document.execCommand("copy"); done(); }catch(_){ toast("Select the text and copy manually"); }
+      c.setAttribute("readonly","readonly"); }
+  };
+
+  // Import
+  function loadConfig(obj){
+    if(!obj || typeof obj!=="object") throw new Error("Not an object");
+    if(obj.avatar){ state.avatar={ name:obj.avatar.name||"", url:obj.avatar.url||"",
+      stepTimeoutMs:obj.avatar.stepTimeoutMs==null?"":obj.avatar.stepTimeoutMs }; }
+    state.retries=obj.retries==null?"":obj.retries;
+    state.workflows=Array.isArray(obj.workflows)?obj.workflows.map(function(w){
+      return { name:w.name||"", retries:w.retries==null?null:w.retries,
+        steps:Array.isArray(w.steps)?w.steps.map(function(s){ var o={action:ACTIONS[s.action]?s.action:"click"};
+          (ACTIONS[o.action].fields||[]).forEach(function(f){ if(s[f]!=null)o[f]=s[f]; }); return o; }):[] };
+    }):[];
+    bindConfig(); renderWorkflows(); renderOutput();
+  }
+  $("import-load").onclick=function(){
+    try{ loadConfig(JSON.parse($("import-text").value)); toast("Loaded"); }
+    catch(err){ toast("Couldn't parse that JSON"); }
+  };
+  $("import-file-btn").onclick=function(){ $("import-file").click(); };
+  $("import-file").onchange=function(){
+    var f=this.files&&this.files[0]; if(!f) return; var r=new FileReader();
+    r.onload=function(){ try{ loadConfig(JSON.parse(r.result)); toast("Loaded "+f.name); }
+      catch(err){ toast("Couldn't parse "+f.name); } };
+    r.readAsText(f);
+  };
+
+  var toastTimer;
+  function toast(msg){ var el=$("toast"); el.textContent=msg; el.classList.add("show");
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){ el.classList.remove("show"); },1600); }
+
+  // ---- GitHub control panel ----
+  function ghStatus(kind,msg){
+    var tag = kind==="ok" ? '<span class="tag info">OK</span>'
+            : kind==="err" ? '<span class="tag" style="background:rgba(242,109,109,.15);color:var(--danger)">ERR</span>'
+            : '<span class="tag warn">…</span>';
+    $("gh-status").innerHTML='<div class="check">'+tag+'<span>'+esc(msg)+'</span></div>';
+  }
+  function ghCfg(){
+    var owner=$("gh-owner").value.trim(), repo=$("gh-repo").value.trim(),
+        branch=$("gh-branch").value.trim()||"main", wf=$("gh-workflow").value.trim()||"regression.yml",
+        token=$("gh-token").value.trim();
+    if(!owner||!repo){ ghStatus("err","Fill in your GitHub username and repository first."); return null; }
+    if(!token){ ghStatus("err","Paste a GitHub token first."); return null; }
+    return { owner:owner, repo:repo, branch:branch, wf:wf, token:token };
+  }
+  function ghHeaders(token){
+    return { "Authorization":"Bearer "+token, "Accept":"application/vnd.github+json", "X-GitHub-Api-Version":"2022-11-28" };
+  }
+  function b64enc(str){
+    var bytes=new TextEncoder().encode(str), bin="";
+    for(var i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64dec(b64){
+    var bin=atob(String(b64).replace(/\n/g,"")), bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function apiBase(c){ return "https://api.github.com/repos/"+encodeURIComponent(c.owner)+"/"+encodeURIComponent(c.repo); }
+
+  // Create/update a file via the Contents API (returns on success, throws with a message)
+  function putFile(c,path,contentStr,message){
+    var url=apiBase(c)+"/contents/"+path;
+    return fetch(url+"?ref="+encodeURIComponent(c.branch),{headers:ghHeaders(c.token)})
+      .then(function(r){ return r.status===404 ? null : r.json(); })
+      .then(function(existing){
+        var body={ message:message, content:b64enc(contentStr), branch:c.branch };
+        if(existing && existing.sha) body.sha=existing.sha;
+        return fetch(url,{ method:"PUT", headers:ghHeaders(c.token), body:JSON.stringify(body) });
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.message||("HTTP "+r.status)); return j; }); });
+  }
+
+  $("gh-save").onclick=function(){
+    var c=ghCfg(); if(!c) return;
+    ghStatus("busy","Saving config/workflows.json…");
+    var json=$("code").value;
+    putFile(c,"config/workflows.json",json,"Update workflows via builder")
+      .then(function(){ ghStatus("ok","Saved to config/workflows.json. Hit Run now to test it."); })
+      .catch(function(e){ ghStatus("err","Save failed: "+e.message); });
+  };
+
+  $("gh-run").onclick=function(){
+    var c=ghCfg(); if(!c) return;
+    ghStatus("busy","Asking GitHub to run the workflow…");
+    fetch(apiBase(c)+"/actions/workflows/"+encodeURIComponent(c.wf)+"/dispatches",{
+      method:"POST", headers:ghHeaders(c.token), body:JSON.stringify({ ref:c.branch })
+    }).then(function(r){
+      if(r.status===204){ ghStatus("ok","Run started. Watch the Actions tab — the Telegram report follows when it finishes."); return; }
+      return r.json().then(function(j){ throw new Error(j.message||("HTTP "+r.status)); });
+    }).catch(function(e){ ghStatus("err","Couldn't start run: "+e.message+" (check the workflow file name and that Actions is enabled)."); });
+  };
+
+  // Schedule: preset dropdown reveals a custom cron field
+  $("gh-schedule").onchange=function(){ $("gh-cron").style.display = this.value==="custom" ? "block" : "none"; };
+  function chosenCron(){
+    var sel=$("gh-schedule").value;
+    if(sel==="custom"){ var v=$("gh-cron").value.trim(); return v||null; }
+    return sel;
+  }
+  $("gh-schedule-save").onclick=function(){
+    var c=ghCfg(); if(!c) return;
+    var cron=chosenCron();
+    if(!cron){ ghStatus("err","Enter a custom cron expression (5 fields), e.g. 0 */4 * * *."); return; }
+    ghStatus("busy","Updating the schedule…");
+    var path=".github/workflows/"+c.wf;
+    fetch(apiBase(c)+"/contents/"+path+"?ref="+encodeURIComponent(c.branch),{headers:ghHeaders(c.token)})
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.message||("HTTP "+r.status)); return j; }); })
+      .then(function(file){
+        var yaml=b64dec(file.content);
+        if(!/cron:\s*['"][^'"]*['"]/.test(yaml)) throw new Error("No cron line found in "+path);
+        var updated=yaml.replace(/cron:\s*['"][^'"]*['"]/, "cron: '"+cron+"'");
+        var body={ message:"Set schedule to "+cron+" via builder", content:b64enc(updated), sha:file.sha, branch:c.branch };
+        return fetch(apiBase(c)+"/contents/"+path,{ method:"PUT", headers:ghHeaders(c.token), body:JSON.stringify(body) });
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.message||("HTTP "+r.status)); return j; }); })
+      .then(function(){ ghStatus("ok","Schedule set to “"+cron+"”. It takes effect on the next scheduled window."); })
+      .catch(function(e){ ghStatus("err","Schedule update failed: "+e.message); });
+  };
+
+  // ---- Init ----
+  bindConfig(); renderWorkflows(); renderOutput();
+})();
+</script>
+</body>
+</html>

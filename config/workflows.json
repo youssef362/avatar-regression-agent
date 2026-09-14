@@ -1,0 +1,36 @@
+{
+  "avatar": {
+    "name": "Fahd — Tabuk",
+    "url": "https://tabuk.clients.zorgelines.com/ar/demo?avatar=f7f6fe47f93446c1&mode=debug",
+    "stepTimeoutMs": 20000
+  },
+  "retries": 1,
+  "workflows": [
+    {
+      "name": "Site reachable and page loads",
+      "steps": [
+        { "action": "goto" },
+        { "action": "expectNoConsoleErrors" }
+      ]
+    },
+    {
+      "name": "Avatar renders",
+      "steps": [
+        { "action": "goto" },
+        { "action": "waitForSelector", "selector": "REPLACE_ME_avatar_container", "timeoutMs": 25000 },
+        { "action": "expectVisible", "selector": "REPLACE_ME_avatar_container" }
+      ]
+    },
+    {
+      "name": "Start conversation and get a response",
+      "steps": [
+        { "action": "goto" },
+        { "action": "click", "selector": "REPLACE_ME_start_button" },
+        { "action": "waitForSelector", "selector": "REPLACE_ME_session_active" },
+        { "action": "fill", "selector": "REPLACE_ME_text_input", "text": "السلام عليكم" },
+        { "action": "click", "selector": "REPLACE_ME_send_button" },
+        { "action": "waitForResponseText", "selector": "REPLACE_ME_response_bubble", "minLength": 3, "timeoutMs": 30000 }
+      ]
+    }
+  ]
+}
